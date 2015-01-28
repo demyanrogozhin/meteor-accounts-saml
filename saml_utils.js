@@ -35,8 +35,8 @@ SAML.prototype.initialize = function (options) {
 
 SAML.prototype.generateUniqueID = function () {
   var chars = "abcdef0123456789";
-  var uniqueID = "";
-  for (var i = 0; i < 20; i++) {
+  var uniqueID = chars.substr(Math.floor((Math.random()*5)), 1);
+  for (var i = 0; i < 19; i++) {
     uniqueID += chars.substr(Math.floor((Math.random()*15)), 1);
   }
   return uniqueID;
