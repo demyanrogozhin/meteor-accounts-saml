@@ -76,6 +76,10 @@ SAML.prototype.generateAuthorizeRequest = function (req) {
   if (this.options.identifierFormat) {
     request += "<samlp:NameIDPolicy xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\" Format=\"" + this.options.identifierFormat +
     "\" AllowCreate=\"true\"></samlp:NameIDPolicy>\n";
+  } else {
+    request += "<samlp:NameIDPolicy xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\" Format=\"" +
+        "null" +
+        "\" AllowCreate=\"true\"></samlp:NameIDPolicy>\n";
   }
 
   request +=
