@@ -211,7 +211,7 @@ SAML.prototype.validateResponse = function (samlResponse, callback) {
         return callback(new Error('Missing SAML assertion'), null, false);
       }
 
-      profile = {};
+      var profile = {};
 
       if (response['$'] && response['$']['InResponseTo']){
         profile.inResponseToId = response['$']['InResponseTo'];
@@ -228,7 +228,7 @@ SAML.prototype.validateResponse = function (samlResponse, callback) {
         if (nameID) {
             profile.nameID = nameID[0]["_"];
 
-          if (nameID[0]['$'].Format) {
+          if (nameID[0]['$'] && nameID[0]['$'].Format) {
             profile.nameIDFormat = nameID[0]['$'].Format;
           }
         }
@@ -256,6 +256,10 @@ SAML.prototype.validateResponse = function (samlResponse, callback) {
 
         if (!profile.email && profile.mail) {
           profile.email = profile.mail;
+        }
+
+        if(!profile.email && profile['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress']){
+            profile.email = profile['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'];
         }
       }
 
