@@ -26,7 +26,7 @@ SAML.prototype.initialize = function (options) {
     options.issuer = 'onelogin_saml';
   }
 
-  if (options.identifierFormat === undefined) {
+  if (typeof options.identifierFormat === 'undefined') {
     options.identifierFormat = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress";
   }
 
@@ -77,9 +77,8 @@ SAML.prototype.generateAuthorizeRequest = function (req) {
     request += "<samlp:NameIDPolicy xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\" Format=\"" + this.options.identifierFormat +
     "\" AllowCreate=\"true\"></samlp:NameIDPolicy>\n";
   } else {
-    request += "<samlp:NameIDPolicy xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\" Format=\"" +
-        "null" +
-        "\" AllowCreate=\"true\"></samlp:NameIDPolicy>\n";
+    request += "<samlp:NameIDPolicy xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\" "+
+        "AllowCreate=\"true\"></samlp:NameIDPolicy>\n";
   }
 
   request +=
@@ -89,8 +88,6 @@ SAML.prototype.generateAuthorizeRequest = function (req) {
         "</saml:AuthnContextClassRef></samlp:RequestedAuthnContext>\n" +
   "</samlp:AuthnRequest>";
 
-  console.log('request:');
-  console.log(request);
   return request;
 };
 
@@ -200,8 +197,6 @@ SAML.prototype.getElement = function (parentElement, elementName) {
 SAML.prototype.validateResponse = function (samlResponse, callback) {
   var self = this;
   var xml = new Buffer(samlResponse, 'base64').toString('ascii');
-  console.log('resp:');
-  console.log(xml);
   var parser = new xml2js.Parser({explicitRoot:true});
   parser.parseString(xml, function (err, doc) {
     // Verify signature
@@ -270,7 +265,6 @@ SAML.prototype.validateResponse = function (samlResponse, callback) {
         if (!profile.email && profile.nameID && profile.nameIDFormat && profile.nameIDFormat.indexOf('emailAddress') >= 0) {
           profile.email = profile.nameID;
         }
-
 
       callback(null, profile, false);
     } else {

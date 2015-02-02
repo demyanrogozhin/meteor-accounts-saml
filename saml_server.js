@@ -13,18 +13,16 @@ Accounts.registerLoginHandler(function(loginRequest) {
   if(!loginRequest.saml || !loginRequest.credentialToken) {
     return undefined;
   }
-  console.log( loginRequest );
   var loginResult = Accounts.saml.retrieveCredential(loginRequest.credentialToken);
-  console.log( loginRequest );
   if(loginResult && loginResult.profile && loginResult.profile.email){
     // Search for email in lowercase just in case
     var user = Meteor.users.findOne({'emails.address':{ $in: [ loginResult.profile.email, loginResult.profile.email.toLowerCase() ]}});
     // Fill new user profile with params from response
-    profileAttr.forEach(function( attr ){
-      profile[ attr ] = loginResult.profile[ provider.profile[ attr ] ];
-    });
     if(!user ) {
       if( provider.createUser ) {
+        profileAttr.forEach(function( attr ){
+          profile[ attr ] = loginResult.profile[ provider.profile[ attr ] ];
+        });
 
         Accounts.createUser({
           username: loginResult.profile.email,
@@ -45,7 +43,7 @@ Accounts.registerLoginHandler(function(loginRequest) {
     //sending token along with the userId
 
     return {
-      id: user._id,
+      userId: user._id,
       token: stampedToken.token
     };
   } else {
@@ -118,7 +116,6 @@ middleware = function (req, res, next) {
         Accounts.saml._loginResultForCredentialToken[credentialToken] = {
           profile: profile
         };
-
         closePopup(res);
       });
     }else {
