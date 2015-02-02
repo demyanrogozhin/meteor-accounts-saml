@@ -7,30 +7,48 @@ var connect = Npm.require('connect');
 RoutePolicy.declare('/_saml/', 'network');
 
 Accounts.registerLoginHandler(function(loginRequest) {
+  var profile = {},
+    provider = Meteor.settings.saml[ 0 ], // FIXME - take attr map from first only setting
+    profileAttr = Object.getOwnPropertyNames( provider.profile || {});
   if(!loginRequest.saml || !loginRequest.credentialToken) {
     return undefined;
   }
+  console.log( loginRequest );
   var loginResult = Accounts.saml.retrieveCredential(loginRequest.credentialToken);
+  console.log( loginRequest );
   if(loginResult && loginResult.profile && loginResult.profile.email){
-    var user = Meteor.users.findOne({'emails.address':loginResult.profile.email});
+    // Search for email in lowercase just in case
+    var user = Meteor.users.findOne({'emails.address':{ $in: [ loginResult.profile.email, loginResult.profile.email.toLowerCase() ]}});
+    // Fill new user profile with params from response
+    profileAttr.forEach(function( attr ){
+      profile[ attr ] = loginResult.profile[ provider.profile[ attr ] ];
+    });
+    if(!user ) {
+      if( provider.createUser ) {
 
-    if(!user)
-      throw new Error("Could not find an existing user with supplied email " + loginResult.profile.email);
+        Accounts.createUser({
+          username: loginResult.profile.email,
+          email : loginResult.profile.email,
+          password : Random.id(),
+          profile: profile
+        });
+        //get the new user
+        user = Meteor.users.findOne({'emails.address': loginResult.profile.email});
 
-
-      //creating the token and adding to the user
-      var stampedToken = Accounts._generateStampedLoginToken();
-      Meteor.users.update(user,
-        {$push: {'services.resume.loginTokens': stampedToken}}
-      );
-
-      //sending token along with the userId
-      return {
-        id: user._id,
-        token: stampedToken.token
+      } else {
+        throw new Error("Could not find an existing user with supplied email " + loginResult.profile.email);
       }
+    }
+    //creating the token and adding to the user
+    var stampedToken = Accounts._generateStampedLoginToken();
+    Meteor.users.update(user, {$push: {'services.resume.loginTokens': stampedToken}});
+    //sending token along with the userId
 
-  }else{
+    return {
+      id: user._id,
+      token: stampedToken.token
+    };
+  } else {
     throw new Error("SAML Profile did not contain an email address");
   }
 });

@@ -89,6 +89,8 @@ SAML.prototype.generateAuthorizeRequest = function (req) {
         "</saml:AuthnContextClassRef></samlp:RequestedAuthnContext>\n" +
   "</samlp:AuthnRequest>";
 
+  console.log('request:');
+  console.log(request);
   return request;
 };
 
@@ -198,6 +200,8 @@ SAML.prototype.getElement = function (parentElement, elementName) {
 SAML.prototype.validateResponse = function (samlResponse, callback) {
   var self = this;
   var xml = new Buffer(samlResponse, 'base64').toString('ascii');
+  console.log('resp:');
+  console.log(xml);
   var parser = new xml2js.Parser({explicitRoot:true});
   parser.parseString(xml, function (err, doc) {
     // Verify signature
